@@ -16,25 +16,71 @@ def load_dataframes():
 def save_dataframe(df, file_name):
     df.to_csv(file_name, index=False)
 
-def main():
+def data_analysis():
     movies_df, ratings_df = load_dataframes()
     print("Movies Dataframe:")
-    print("Shape before filtering NA data:", movies_df.shape)
-    movies_df = movies_df.dropna()
-    print("Shape after filtering NA data:", movies_df.shape)
-    print("Primele randuri din dataframe:", movies_df.head(5), sep='\n')
+    print("Shape:", movies_df.shape)
+    print("First rows of the dataframe:", movies_df.head(5), sep='\n')
+    num_movies = movies_df["movieId"].nunique()
+    print("Number of movies:", num_movies)
 
     print("\nRatings Dataframe:")
-    print("Shape before filtering NA data:", ratings_df.shape)
-    ratings_df = ratings_df.dropna()
-    print("Shape after filtering NA data:", ratings_df.shape)
-    print("Primele randuri din dataframe:", ratings_df.head(5), sep='\n')
+    print("Shape:", ratings_df.shape)
+    print("First rows of the dataframe:", ratings_df.head(5), sep='\n')
     num_users = ratings_df["userId"].nunique()
-    print("Numar de useri:", num_users)
+    print("Number of users:", num_users)
+    
+def data_cleaning():
+    movies_df, ratings_df = load_dataframes()
+
+    min_user_ratings = 5
+    min_movie_interactions = 5
+
+    print("Initial shapes:")
+    print("Movies:", movies_df.shape)
+    print("Ratings:", ratings_df.shape)
+
+    ratings_df = ratings_df.drop_duplicates()
+    print("\nAfter removing duplicate ratings:", ratings_df.shape)
+
+    changed = True
+    while changed:
+        previous_ratings_shape = ratings_df.shape
+        previous_movies_shape = movies_df.shape
+
+        user_counts = ratings_df["userId"].value_counts()
+        active_users = user_counts[user_counts >= min_user_ratings].index
+        ratings_df = ratings_df[ratings_df["userId"].isin(active_users)].copy()
+
+        movie_counts = ratings_df["movieId"].value_counts()
+        active_movies = movie_counts[movie_counts >= min_movie_interactions].index
+        ratings_df = ratings_df[ratings_df["movieId"].isin(active_movies)].copy()
+        movies_df = movies_df[movies_df["movieId"].isin(active_movies)].copy()
+
+        changed = ratings_df.shape != previous_ratings_shape or movies_df.shape != previous_movies_shape
+
+    print("\nAfter filtering sparse users/movies:")
+    print("Movies:", movies_df.shape)
+    print("Ratings:", ratings_df.shape)
+    print("Remaining users:", ratings_df["userId"].nunique())
+    print("Remaining movies:", ratings_df["movieId"].nunique())
+
+    print("\nRating distribution:")
+    rating_distribution = ratings_df["rating"].value_counts().sort_index()
+    rating_distribution_percent = ratings_df["rating"].value_counts(normalize=True).sort_index() * 100
+    for rating_value in rating_distribution.index:
+        count = int(rating_distribution.loc[rating_value])
+        percent = rating_distribution_percent.loc[rating_value]
+        print(f"Rating {rating_value}: {count} ({percent:.2f}%)")
+
+    ratings_df["rating_centered"] = ratings_df["rating"] - ratings_df["rating"].mean()
+    print("\nCentered rating stats:")
+    print(ratings_df["rating_centered"].describe())
 
     save_dataframe(movies_df, MOVIES_DATA_PATH)
     save_dataframe(ratings_df, RATINGS_DATA_PATH)
-    
+    print("\nCleaned datasets saved.")
 
 if __name__ == "__main__":
-    main()
+    data_cleaning()
+    data_analysis()
