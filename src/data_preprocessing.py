@@ -4,9 +4,12 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
+PROCESSED_DATA_DIR = DATA_DIR / "processed"
 
 MOVIES_DATA_PATH = DATA_DIR / "movies.csv"
 RATINGS_DATA_PATH = DATA_DIR / "ratings.csv"
+PROCESSED_MOVIES_DATA_PATH = PROCESSED_DATA_DIR / "movies.csv"
+PROCESSED_RATINGS_DATA_PATH = PROCESSED_DATA_DIR / "ratings.csv"
 
 def load_dataframes():
     movies_df = pd.read_csv(MOVIES_DATA_PATH)
@@ -14,6 +17,7 @@ def load_dataframes():
     return movies_df, ratings_df
 
 def save_dataframe(df, file_name):
+    file_name.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(file_name, index=False)
 
 def data_analysis():
@@ -57,6 +61,8 @@ def data_cleaning():
         ratings_df = ratings_df[ratings_df["movieId"].isin(active_movies)].copy()
         movies_df = movies_df[movies_df["movieId"].isin(active_movies)].copy()
 
+        ratings_df["rating"] = ratings_df["rating"] / 5
+
         changed = ratings_df.shape != previous_ratings_shape or movies_df.shape != previous_movies_shape
 
     print("\nAfter filtering sparse users/movies:")
@@ -77,9 +83,11 @@ def data_cleaning():
     print("\nCentered rating stats:")
     print(ratings_df["rating_centered"].describe())
 
-    save_dataframe(movies_df, MOVIES_DATA_PATH)
-    save_dataframe(ratings_df, RATINGS_DATA_PATH)
-    print("\nCleaned datasets saved.")
+    save_dataframe(movies_df, PROCESSED_MOVIES_DATA_PATH)
+    save_dataframe(ratings_df, PROCESSED_RATINGS_DATA_PATH)
+    print("\nCleaned datasets saved to:")
+    print(PROCESSED_MOVIES_DATA_PATH)
+    print(PROCESSED_RATINGS_DATA_PATH)
 
 if __name__ == "__main__":
     data_cleaning()
