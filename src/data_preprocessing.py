@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
+from sklearn.model_selection import train_test_split
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
@@ -10,6 +11,10 @@ MOVIES_DATA_PATH = DATA_DIR / "movies.csv"
 RATINGS_DATA_PATH = DATA_DIR / "ratings.csv"
 PROCESSED_MOVIES_DATA_PATH = PROCESSED_DATA_DIR / "movies.csv"
 PROCESSED_RATINGS_DATA_PATH = PROCESSED_DATA_DIR / "ratings.csv"
+
+TRAIN_DATA_PATH = PROCESSED_DATA_DIR / "train.csv"
+TEST_DATA_PATH = PROCESSED_DATA_DIR / "test.csv"
+VAL_DATA_PATH = PROCESSED_DATA_DIR / "val.csv"
 
 def load_dataframes():
     movies_df = pd.read_csv(MOVIES_DATA_PATH)
@@ -33,6 +38,23 @@ def data_analysis():
     print("First rows of the dataframe:", ratings_df.head(5), sep='\n')
     num_users = ratings_df["userId"].nunique()
     print("Number of users:", num_users)
+
+def split_dataset(ratings_df):
+    train_df, temp_df = train_test_split(
+        ratings_df,
+        test_size=0.3,
+        random_state=42
+    )
+
+    test_df, val_df = train_test_split(
+        temp_df,
+        test_size=0.5,
+        random_state=42
+    )
+    save_dataframe(train_df, TRAIN_DATA_PATH)
+    save_dataframe(test_df, TEST_DATA_PATH)
+    save_dataframe(val_df, VAL_DATA_PATH)
+
     
 def data_cleaning():
     movies_df, ratings_df = load_dataframes()
@@ -65,7 +87,7 @@ def data_cleaning():
             ratings_df["rating"] /= 5
 
         changed = ratings_df.shape != previous_ratings_shape or movies_df.shape != previous_movies_shape
-        
+
     ratings_df = ratings_df.drop(columns=["timestamp", "rating_centered"])
 
     print("\nAfter filtering sparse users/movies:")
@@ -87,6 +109,8 @@ def data_cleaning():
     print("\nCleaned datasets saved to:")
     print(PROCESSED_MOVIES_DATA_PATH)
     print(PROCESSED_RATINGS_DATA_PATH)
+
+    split_dataset(ratings_df)
 
 if __name__ == "__main__":
     data_cleaning()
