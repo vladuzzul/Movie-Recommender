@@ -55,7 +55,6 @@ def split_dataset(ratings_df):
     return train_df, test_df, val_df
     
 
-    
 def data_cleaning():
     movies_df, ratings_df = load_dataframes()
 
