@@ -12,9 +12,9 @@ RATINGS_DATA_PATH = DATA_DIR / "ratings.csv"
 PROCESSED_MOVIES_DATA_PATH = PROCESSED_DATA_DIR / "movies.csv"
 PROCESSED_RATINGS_DATA_PATH = PROCESSED_DATA_DIR / "ratings.csv"
 
-TRAIN_DATA_PATH = PROCESSED_DATA_DIR / "train.csv"
-TEST_DATA_PATH = PROCESSED_DATA_DIR / "test.csv"
-VAL_DATA_PATH = PROCESSED_DATA_DIR / "val.csv"
+TRAIN_DATA_PATH = PROCESSED_DATA_DIR / "train_data.csv"
+TEST_DATA_PATH = PROCESSED_DATA_DIR / "test_data.csv"
+VAL_DATA_PATH = PROCESSED_DATA_DIR / "val_data.csv"
 
 def load_dataframes():
     movies_df = pd.read_csv(MOVIES_DATA_PATH)
@@ -40,6 +40,7 @@ def data_analysis():
     print("Number of users:", num_users)
 
 def split_dataset(ratings_df):
+    """Split the data 70% training, 15% test, 15% validation"""
     train_df, temp_df = train_test_split(
         ratings_df,
         test_size=0.3,
@@ -51,9 +52,8 @@ def split_dataset(ratings_df):
         test_size=0.5,
         random_state=42
     )
-    save_dataframe(train_df, TRAIN_DATA_PATH)
-    save_dataframe(test_df, TEST_DATA_PATH)
-    save_dataframe(val_df, VAL_DATA_PATH)
+    return train_df, test_df, val_df
+    
 
     
 def data_cleaning():
@@ -110,7 +110,15 @@ def data_cleaning():
     print(PROCESSED_MOVIES_DATA_PATH)
     print(PROCESSED_RATINGS_DATA_PATH)
 
-    split_dataset(ratings_df)
+    train_df, test_df, val_df = split_dataset(ratings_df)
+    
+    save_dataframe(train_df, TRAIN_DATA_PATH)
+    save_dataframe(test_df, TEST_DATA_PATH)
+    save_dataframe(val_df, VAL_DATA_PATH)
+    print("\nSplit datasets saved to:")
+    print(TRAIN_DATA_PATH)
+    print(TEST_DATA_PATH)
+    print(VAL_DATA_PATH)
 
 if __name__ == "__main__":
     data_cleaning()
