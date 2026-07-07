@@ -84,7 +84,26 @@ def data_cleaning():
 
         if ratings_df["rating"].max() > 1:
             ratings_df["rating"] /= 5
+        
+        # df4 = df.copy()
+        # res = []
+        # for i, row in df4.iterrows():
+        #     res.append(row['A'] * row['B'] if row['C'] == 'X' else row['A'] + row['B'])
+        # df4['Result'] = res
+        # print(df4)
 
+        year_col = []
+        for i, row in movies_df.iterrows():
+            year = row["title"].split()[-1][1:-1]
+            year_col.append(year)
+        movies_df["year"] = year_col
+
+        genre_col = []
+        for i, row in movies_df.iterrows():
+            genre = row["genres"].replace("|", ",")
+            genre_col.append(genre)
+        movies_df["genres"] = genre_col
+        
         changed = ratings_df.shape != previous_ratings_shape or movies_df.shape != previous_movies_shape
 
     ratings_df = ratings_df.drop(columns=["timestamp", "rating_centered"])
