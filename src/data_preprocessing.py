@@ -61,9 +61,12 @@ def data_cleaning():
         ratings_df = ratings_df[ratings_df["movieId"].isin(active_movies)].copy()
         movies_df = movies_df[movies_df["movieId"].isin(active_movies)].copy()
 
-        ratings_df["rating"] = ratings_df["rating"] / 5
+        if ratings_df["rating"].max() > 1:
+            ratings_df["rating"] /= 5
 
         changed = ratings_df.shape != previous_ratings_shape or movies_df.shape != previous_movies_shape
+        
+    ratings_df = ratings_df.drop(columns=["timestamp", "rating_centered"])
 
     print("\nAfter filtering sparse users/movies:")
     print("Movies:", movies_df.shape)
@@ -77,11 +80,7 @@ def data_cleaning():
     for rating_value in rating_distribution.index:
         count = int(rating_distribution.loc[rating_value])
         percent = rating_distribution_percent.loc[rating_value]
-        print(f"Rating {rating_value}: {count} ({percent:.2f}%)")
-
-    ratings_df["rating_centered"] = ratings_df["rating"] - ratings_df["rating"].mean()
-    print("\nCentered rating stats:")
-    print(ratings_df["rating_centered"].describe())
+        print(f"Rating {rating_value * 5}: {count} ({percent:.2f}%)")
 
     save_dataframe(movies_df, PROCESSED_MOVIES_DATA_PATH)
     save_dataframe(ratings_df, PROCESSED_RATINGS_DATA_PATH)
