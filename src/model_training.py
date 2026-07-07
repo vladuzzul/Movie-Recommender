@@ -17,18 +17,20 @@ HISTORY_PATH = DATA_DIR / "model_history.csv"
 TRAIN_DATA_PATH = PROCESSED_DATA_DIR / "train_data.csv"
 TEST_DATA_PATH = PROCESSED_DATA_DIR / "test_data.csv"
 VAL_DATA_PATH = PROCESSED_DATA_DIR / "val_data.csv"
+MOVIES_DATA_PATH = PROCESSED_DATA_DIR / "movies.csv"
 
 BATCH_SIZE = 128
 EMBEDDING_SIZE = 50
-DROPOUT_RATE = 0.3
+DROPOUT_RATE = 0.6
 EPOCHS = 100
 LEARNING_RATE = 1e-3
-WEIGHT_DECAY = 1e-5
+WEIGHT_DECAY = 1e-2
 
 def load_datasets():
     train_df = pd.read_csv(TRAIN_DATA_PATH)
     test_df = pd.read_csv(TEST_DATA_PATH)
     val_df = pd.read_csv(VAL_DATA_PATH)
+
     return train_df, test_df, val_df
 
 def create_data_generators(train_df, test_df, val_df):
@@ -36,6 +38,8 @@ def create_data_generators(train_df, test_df, val_df):
         {
             "userId": train_df["userId"].values,
             "movieId": train_df["movieId"].values,
+            "genres": train_df["genres"].astype(str).values,
+            "year": train_df["year"].values,
         },
         train_df["rating"].values
     ))
@@ -44,6 +48,8 @@ def create_data_generators(train_df, test_df, val_df):
         {
             "userId": val_df["userId"].values,
             "movieId": val_df["movieId"].values,
+            "genres": val_df["genres"].astype(str).values,
+            "year": val_df["year"].values,
         },
         val_df["rating"].values
     ))
@@ -52,6 +58,8 @@ def create_data_generators(train_df, test_df, val_df):
         {
             "userId": test_df["userId"].values,
             "movieId": test_df["movieId"].values,
+            "genres": test_df["genres"].astype(str).values,
+            "year": test_df["year"].values,
         },
         test_df["rating"].values
     ))
@@ -78,10 +86,11 @@ def create_data_generators(train_df, test_df, val_df):
     return train_datagen, test_datagen, val_datagen
 
 class RecommenderModel(tf.keras.Model):
-    def __init__(self, user_vocab, movie_vocab, embedding_size=EMBEDDING_SIZE, dropout_rate=DROPOUT_RATE):
+    def __init__(self, user_vocab, movie_vocab, genre_vocab, embedding_size=EMBEDDING_SIZE, dropout_rate=DROPOUT_RATE):
         super().__init__()
         self.user_lookup = tf.keras.layers.IntegerLookup(vocabulary=user_vocab)
         self.movie_lookup = tf.keras.layers.IntegerLookup(vocabulary=movie_vocab)
+        self.genre_lookup = tf.keras.layers.StringLookup(vocabulary=genre_vocab, mask_token=None)
 
         self.user_embedding = tf.keras.layers.Embedding(
             input_dim=self.user_lookup.vocabulary_size(),
@@ -91,13 +100,19 @@ class RecommenderModel(tf.keras.Model):
             input_dim=self.movie_lookup.vocabulary_size(),
             output_dim=embedding_size,
         )
+        self.genre_embedding = tf.keras.layers.Embedding(
+            input_dim=self.genre_lookup.vocabulary_size(),
+            output_dim=embedding_size,
+        )
+
+        self.year_normalization = tf.keras.layers.Normalization(axis=None)
 
         self.concatenate = tf.keras.layers.Concatenate()
         self.dense_1 = tf.keras.layers.Dense(128, activation="relu")
         self.dropout_1 = tf.keras.layers.Dropout(dropout_rate)
         self.dense_2 = tf.keras.layers.Dense(64, activation="relu")
         self.dropout_2 = tf.keras.layers.Dropout(dropout_rate)
-        self.output_layer = tf.keras.layers.Dense(1, activation="sigmoid")
+        self.output_layer = tf.keras.layers.Dense(1)
 
     def get_config(self):
         config = super().get_config()
@@ -108,11 +123,17 @@ class RecommenderModel(tf.keras.Model):
     def call(self, inputs, training=False):
         user_id = tf.cast(inputs["userId"], tf.int64)
         movie_id = tf.cast(inputs["movieId"], tf.int64)
+        year = tf.cast(inputs["year"], tf.float32)
 
         user_vector = self.user_embedding(self.user_lookup(user_id))
         movie_vector = self.movie_embedding(self.movie_lookup(movie_id))
+        genre_tokens = tf.strings.split(inputs["genres"], ",")
+        genre_indices = self.genre_lookup(genre_tokens)
+        genre_vector = self.genre_embedding(genre_indices)
+        genre_vector = tf.reduce_mean(genre_vector, axis=1)
+        year_vector = tf.expand_dims(self.year_normalization(year), axis=-1)
 
-        x = self.concatenate([user_vector, movie_vector])
+        x = self.concatenate([user_vector, movie_vector, genre_vector, year_vector])
         x = self.dense_1(x)
         x = self.dropout_1(x, training=training)
         x = self.dense_2(x)
@@ -126,8 +147,10 @@ def build_model(train_df=None):
 
     user_vocab = train_df["userId"].unique().tolist()
     movie_vocab = train_df["movieId"].unique().tolist()
+    genre_vocab = sorted({genre for genres in train_df["genres"].fillna("").astype(str) for genre in genres.split(",") if genre})
 
-    model = RecommenderModel(user_vocab=user_vocab, movie_vocab=movie_vocab)
+    model = RecommenderModel(user_vocab=user_vocab, movie_vocab=movie_vocab, genre_vocab=genre_vocab)
+    model.year_normalization.adapt(train_df["year"].values)
     model.compile(
         optimizer=tf.keras.optimizers.AdamW(
             learning_rate=LEARNING_RATE,
@@ -168,6 +191,7 @@ def log_run_params(train_df, test_df, val_df):
         "loss": "Huber",
         "optimizer": "AdamW",
         "callbacks": "EarlyStopping,ReduceLROnPlateau",
+        "features": "userId,movieId,genres,year",
         "train_samples": len(train_df),
         "val_samples": len(val_df),
         "test_samples": len(test_df)

@@ -53,10 +53,19 @@ def split_dataset(ratings_df):
         random_state=42
     )
     return train_df, test_df, val_df
-    
+
+def enrich_with_movie_features(df, movies_df):
+        if {"genres", "year"}.issubset(df.columns):
+            return df
+
+        enriched_df = df.merge(movies_df, on="movieId", how="left")
+        enriched_df["genres"] = enriched_df["genres"].fillna("")
+        enriched_df["year"] = pd.to_numeric(enriched_df["year"], errors="coerce").fillna(0).astype(int)
+        return enriched_df
 
 def data_cleaning():
     movies_df, ratings_df = load_dataframes()
+    
 
     min_user_ratings = 5
     min_movie_interactions = 5
@@ -129,6 +138,9 @@ def data_cleaning():
     print(PROCESSED_RATINGS_DATA_PATH)
 
     train_df, test_df, val_df = split_dataset(ratings_df)
+    train_df = enrich_with_movie_features(train_df, movies_df)
+    test_df = enrich_with_movie_features(test_df, movies_df)
+    val_df = enrich_with_movie_features(val_df, movies_df)
     
     save_dataframe(train_df, TRAIN_DATA_PATH)
     save_dataframe(test_df, TEST_DATA_PATH)
