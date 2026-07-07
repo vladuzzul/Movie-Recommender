@@ -1,9 +1,9 @@
 import tensorflow as tf
 from tensorflow.keras.callbacks import (
-    EarlyStopping
+    EarlyStopping,
+    ReduceLROnPlateau,
 )
 import pandas as pd
-import numpy as np
 from pathlib import Path
 import mlflow
 
@@ -22,6 +22,8 @@ BATCH_SIZE = 128
 EMBEDDING_SIZE = 50
 DROPOUT_RATE = 0.3
 EPOCHS = 100
+LEARNING_RATE = 1e-3
+WEIGHT_DECAY = 1e-5
 
 def load_datasets():
     train_df = pd.read_csv(TRAIN_DATA_PATH)
@@ -127,8 +129,11 @@ def build_model(train_df=None):
 
     model = RecommenderModel(user_vocab=user_vocab, movie_vocab=movie_vocab)
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(),
-        loss=tf.keras.losses.MeanSquaredError(),
+        optimizer=tf.keras.optimizers.AdamW(
+            learning_rate=LEARNING_RATE,
+            weight_decay=WEIGHT_DECAY,
+        ),
+        loss=tf.keras.losses.Huber(),
         metrics=[
             tf.keras.metrics.RootMeanSquaredError(name="rmse"),
             tf.keras.metrics.MeanAbsoluteError(name="mae"),
@@ -140,10 +145,16 @@ def create_callbacks():
     """Create training callbacks"""
     early_stop = EarlyStopping(
         monitor='val_loss',
-        patience=10,
+        patience=5,
         restore_best_weights=True
     )
-    return [early_stop]
+    reduce_lr = ReduceLROnPlateau(
+        monitor='val_loss',
+        factor=0.5,
+        patience=3,
+        min_lr=1e-6
+    )
+    return [early_stop, reduce_lr]
 
 
 def log_run_params(train_df, test_df, val_df):
@@ -152,18 +163,42 @@ def log_run_params(train_df, test_df, val_df):
         "epochs": EPOCHS,
         "embedding size": EMBEDDING_SIZE,
         "dropout": DROPOUT_RATE,
-        "callback": "EarlyStopping",
+        "learning_rate": LEARNING_RATE,
+        "weight_decay": WEIGHT_DECAY,
+        "loss": "Huber",
+        "optimizer": "AdamW",
+        "callbacks": "EarlyStopping,ReduceLROnPlateau",
         "train_samples": len(train_df),
         "val_samples": len(val_df),
         "test_samples": len(test_df)
     })
 
 def log_epochs_metrics(history):
+    def metric_at(name, epoch_index):
+        values = history.history.get(name)
+        if values is None:
+            return None
+        return values[epoch_index]
+
     for epoch in range(len(history.history["loss"])):
-        mlflow.log_metrics({
+        metrics = {
             "train_loss": history.history["loss"][epoch],
             "val_loss": history.history["val_loss"][epoch],
-        }, step = epoch + 1)
+        }
+
+        for history_name, mlflow_name in [
+            ("rmse", "train_rmse"),
+            ("val_rmse", "val_rmse"),
+            ("mae", "train_mae"),
+            ("val_mae", "val_mae"),
+            ("learning_rate", "learning_rate"),
+            ("lr", "learning_rate"),
+        ]:
+            value = metric_at(history_name, epoch)
+            if value is not None:
+                metrics[mlflow_name] = value
+
+        mlflow.log_metrics(metrics, step=epoch + 1)
 
 def save_training_artifacts(model, history):
     """Attach the model and history to the active MLflow run."""
