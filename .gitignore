@@ -218,3 +218,5 @@ __marimo__/
 .streamlit/secrets.toml
 /mlruns/
 mlflow.db
+
+.DS_Store

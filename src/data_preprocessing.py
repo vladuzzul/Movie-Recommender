@@ -93,13 +93,6 @@ def data_cleaning():
 
         if ratings_df["rating"].max() > 1:
             ratings_df["rating"] /= 5
-        
-        # df4 = df.copy()
-        # res = []
-        # for i, row in df4.iterrows():
-        #     res.append(row['A'] * row['B'] if row['C'] == 'X' else row['A'] + row['B'])
-        # df4['Result'] = res
-        # print(df4)
 
         year_col = []
         for i, row in movies_df.iterrows():
@@ -138,9 +131,6 @@ def data_cleaning():
     print(PROCESSED_RATINGS_DATA_PATH)
 
     train_df, test_df, val_df = split_dataset(ratings_df)
-    train_df = enrich_with_movie_features(train_df, movies_df)
-    test_df = enrich_with_movie_features(test_df, movies_df)
-    val_df = enrich_with_movie_features(val_df, movies_df)
     
     save_dataframe(train_df, TRAIN_DATA_PATH)
     save_dataframe(test_df, TEST_DATA_PATH)
