@@ -12,7 +12,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install test dependencies
-        run: pip install pytest pandas tqdm requests pathlib tensorflow pillow fastapi python-multipart
+        run: pip install pytest pandas pathlib scikit-learn
 
       - name: Run unit tests
         run: pytest tests
