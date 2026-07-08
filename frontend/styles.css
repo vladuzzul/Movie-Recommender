@@ -635,10 +635,22 @@ h2 {
     flex-direction: column;
   }
 
+  .brand {
+    text-align: center;
+  }
+
   .hud-stats {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
+  }
+
+  .quest-path {
+    gap: 24px;
+  }
+
+  .arcade-cabinet {
+    margin-bottom: 24px;
   }
 
   .nav-actions,
