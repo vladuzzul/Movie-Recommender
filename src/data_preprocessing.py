@@ -115,7 +115,7 @@ def data_cleaning():
         
         changed = ratings_df.shape != previous_ratings_shape or movies_df.shape != previous_movies_shape
 
-    ratings_df = ratings_df.drop(columns=["timestamp", "rating_centered"])
+    ratings_df = ratings_df.drop(columns=["timestamp"])
 
     print("\nAfter filtering sparse users/movies:")
     print("Movies:", movies_df.shape)

@@ -24,7 +24,7 @@ EMBEDDING_SIZE = 50
 DROPOUT_RATE = 0.6
 EPOCHS = 100
 LEARNING_RATE = 1e-3
-WEIGHT_DECAY = 1e-2
+WEIGHT_DECAY = 1e-5
 
 def load_datasets():
     train_df = pd.read_csv(TRAIN_DATA_PATH)
@@ -241,6 +241,8 @@ def train_model(epochs=EPOCHS):
         log_run_params(train_df, test_df, val_df)
 
         model = build_model(train_df)
+        model.summary()
+
         history = model.fit(
             train_ds,
             validation_data=val_ds,
