@@ -38,6 +38,6 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           docker build -f Dockerfile \
-            -t ${{ secrets.DOCKER_USERNAME }}/deepfake-detection:latest \
+            -t ${{ secrets.DOCKER_USERNAME }}/movie-recommender:latest \
             .
-          docker push ${{ secrets.DOCKER_USERNAME }}/deepfake-detection:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/movie-recommender:latest
