@@ -1,4 +1,4 @@
-name: CI/CD Pipeline for Deepfake Model
+name: CI/CD Pipeline for Movie Recommender
 on: [push, pull_request]
 
 jobs:
