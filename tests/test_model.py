@@ -20,7 +20,7 @@ class TestModel(unittest.TestCase):
             "Spectre",
             None
         )
-        self.assertEqual(str(type(recommendation)), "<class 'pandas.core.frame.DataFrame'>")
+        self.assertIn(str(type(recommendation)), ["<class 'pandas.core.frame.DataFrame'>", "<class 'pandas.DataFrame'>"])
 
 if __name__ == "__main__":
     unittest.main()
