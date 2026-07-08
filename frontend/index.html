@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ro">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Movie Recommender</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Movie Recommender</p>
+          <h1>Choose the movies you like.</h1>
+        </div>
+        <div class="hero-stat">
+          <span id="ratedCount">0</span>
+          <small>rated</small>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <div class="movie-panel">
+          <div class="toolbar">
+            <label class="search-box">
+              <span>Search</span>
+              <input id="searchInput" type="search" placeholder="Toy Story, Heat, Spectre..." autocomplete="off" />
+            </label>
+            <button id="clearButton" class="ghost-button" type="button">Reset</button>
+          </div>
+          <div id="movieGrid" class="movie-grid" aria-live="polite"></div>
+        </div>
+
+        <aside class="side-panel">
+          <div class="panel-block">
+            <div class="panel-heading">
+              <h2>Your ratings</h2>
+              <button id="recommendButton" class="primary-button" type="button" disabled>Recommend</button>
+            </div>
+            <div id="ratedList" class="rated-list empty-state">No rated movie</div>
+          </div>
+
+          <div class="panel-block">
+            <div class="panel-heading">
+              <h2>Suggestions</h2>
+              <span id="statusText" class="status-text"></span>
+            </div>
+            <div id="recommendations" class="recommendations empty-state">Shows up after the first rating</div>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
