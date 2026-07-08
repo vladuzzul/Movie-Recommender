@@ -1,53 +1,65 @@
 <!doctype html>
-<html lang="ro">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Movie Recommender</title>
+    <title>Cinema Quest</title>
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
-  <body>
-    <main class="app-shell">
-      <section class="hero">
-        <div>
-          <p class="eyebrow">Movie Recommender</p>
-          <h1>Choose the movies you like.</h1>
+  <body data-page="home">
+    <main class="screen home-screen">
+      <nav class="topbar" aria-label="Main navigation">
+        <a class="brand" href="/">Cinema Quest</a>
+        <div class="nav-actions">
+          <a href="/rate">Rate movies</a>
+          <a href="/suggestions">Suggestions</a>
         </div>
-        <div class="hero-stat">
-          <span id="ratedCount">0</span>
-          <small>rated</small>
+      </nav>
+
+      <section class="home-stage">
+        <div class="hero-copy">
+          <p class="eyebrow">Movie recommender adventure</p>
+          <h1>Build your taste deck and unlock your next watchlist.</h1>
+          <p class="lead">
+            Pick films, give them star power, then jump to a separate results screen where the recommender reveals your matches.
+          </p>
+          <div class="hero-actions">
+            <a class="quest-button" href="/rate">Start quest</a>
+            <a class="secondary-link" href="/suggestions">View suggestions</a>
+          </div>
+        </div>
+
+        <div class="arcade-cabinet" aria-hidden="true">
+          <img src="/static/assets/projector.svg" alt="" />
+          <div class="cabinet-screen">
+            <span class="screen-line"></span>
+            <span class="screen-line short"></span>
+            <span class="screen-score" id="homeRatingCount">0 ratings loaded</span>
+          </div>
+          <div class="cabinet-controls">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
         </div>
       </section>
 
-      <section class="workspace">
-        <div class="movie-panel">
-          <div class="toolbar">
-            <label class="search-box">
-              <span>Search</span>
-              <input id="searchInput" type="search" placeholder="Toy Story, Heat, Spectre..." autocomplete="off" />
-            </label>
-            <button id="clearButton" class="ghost-button" type="button">Reset</button>
-          </div>
-          <div id="movieGrid" class="movie-grid" aria-live="polite"></div>
-        </div>
-
-        <aside class="side-panel">
-          <div class="panel-block">
-            <div class="panel-heading">
-              <h2>Your ratings</h2>
-              <button id="recommendButton" class="primary-button" type="button" disabled>Recommend</button>
-            </div>
-            <div id="ratedList" class="rated-list empty-state">No rated movie</div>
-          </div>
-
-          <div class="panel-block">
-            <div class="panel-heading">
-              <h2>Suggestions</h2>
-              <span id="statusText" class="status-text"></span>
-            </div>
-            <div id="recommendations" class="recommendations empty-state">Shows up after the first rating</div>
-          </div>
-        </aside>
+      <section class="quest-path" aria-label="Quest steps">
+        <article>
+          <span>1</span>
+          <h2>Search</h2>
+          <p>Find movies in the catalog.</p>
+        </article>
+        <article>
+          <span>2</span>
+          <h2>Power up</h2>
+          <p>Rate them from one to five stars.</p>
+        </article>
+        <article>
+          <span>3</span>
+          <h2>Reveal</h2>
+          <p>Open your recommendations page.</p>
+        </article>
       </section>
     </main>
 

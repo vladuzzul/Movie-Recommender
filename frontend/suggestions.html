@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Suggestions | Cinema Quest</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body data-page="suggestions">
+    <main class="screen">
+      <nav class="topbar" aria-label="Main navigation">
+        <a class="brand" href="/">Cinema Quest</a>
+        <div class="nav-actions">
+          <a href="/rate">Rate movies</a>
+          <a class="active" href="/suggestions">Suggestions</a>
+        </div>
+      </nav>
+
+      <section class="results-hero">
+        <div>
+          <p class="eyebrow">Level 2: reward reveal</p>
+          <h1>Your movie loot.</h1>
+          <p class="lead" id="resultsIntro">Loading your unlocked recommendations.</p>
+        </div>
+        <img src="/static/assets/marquee.svg" alt="" />
+      </section>
+
+      <section class="results-layout">
+        <aside class="quest-panel compact">
+          <h2>Rated deck</h2>
+          <div id="ratedList" class="rated-list empty-state">No movies rated yet.</div>
+          <div class="panel-actions">
+            <a class="ghost-link" href="/rate">Edit ratings</a>
+            <button id="clearButton" class="ghost-button" type="button">New run</button>
+          </div>
+        </aside>
+
+        <section class="reward-board">
+          <div class="reward-header">
+            <h2>Unlocked suggestions</h2>
+            <span id="statusText" class="status-text">Loading</span>
+          </div>
+          <div id="recommendations" class="reward-grid" aria-live="polite"></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

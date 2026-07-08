@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 260" role="img" aria-label="Cinema marquee">
+  <rect x="32" y="54" width="356" height="148" rx="22" fill="#17161f"/>
+  <rect x="56" y="82" width="308" height="92" rx="12" fill="#fff6d8"/>
+  <path d="M76 112h188v16H76zm0 34h236v14H76z" fill="#17161f"/>
+  <g fill="#ff6b4a">
+    <circle cx="72" cy="54" r="10"/><circle cx="118" cy="54" r="10"/><circle cx="164" cy="54" r="10"/>
+    <circle cx="210" cy="54" r="10"/><circle cx="256" cy="54" r="10"/><circle cx="302" cy="54" r="10"/>
+    <circle cx="348" cy="54" r="10"/>
+  </g>
+  <path d="M98 202h224l-26 36H124z" fill="#2dd4bf"/>
+</svg>

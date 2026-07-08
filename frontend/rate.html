@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rate Movies | Cinema Quest</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body data-page="rate">
+    <main class="screen">
+      <nav class="topbar" aria-label="Main navigation">
+        <a class="brand" href="/">Cinema Quest</a>
+        <div class="nav-actions">
+          <a class="active" href="/rate">Rate movies</a>
+          <a href="/suggestions">Suggestions</a>
+        </div>
+      </nav>
+
+      <section class="game-hud">
+        <div>
+          <p class="eyebrow">Level 1: taste builder</p>
+          <h1>Collect star power.</h1>
+        </div>
+        <div class="hud-stats" aria-label="Rating progress">
+          <div>
+            <strong id="ratedCount">0</strong>
+            <span>rated</span>
+          </div>
+          <div>
+            <strong id="starPower">0</strong>
+            <span>power</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="playfield">
+        <aside class="quest-panel">
+          <img class="ticket-art" src="/static/assets/ticket.svg" alt="" />
+          <h2>Your loadout</h2>
+          <div id="ratedList" class="rated-list empty-state">No movies rated yet.</div>
+          <div class="panel-actions">
+            <button id="clearButton" class="ghost-button" type="button">Reset run</button>
+            <a id="recommendButton" class="quest-button disabled" href="/suggestions" aria-disabled="true">Reveal rewards</a>
+          </div>
+        </aside>
+
+        <section class="movie-board">
+          <div class="toolbar">
+            <label class="search-box">
+              <span>Movie search</span>
+              <input id="searchInput" type="search" placeholder="Toy Story, Heat, Spectre..." autocomplete="off" />
+            </label>
+          </div>
+          <div id="movieGrid" class="movie-grid" aria-live="polite"></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

@@ -61,10 +61,18 @@ def get_catalog() -> tuple[pd.DataFrame, pd.Series]:
     movies_df, ratings_df = load_dataframes()
     movies_df = movies_df.copy()
     movies_df["title_key"] = movies_df["title"].str.casefold()
+    movies_df["year"] = pd.to_numeric(movies_df["year"], errors="coerce")
 
     average_rating = ratings_df.groupby("movieId")["rating"].mean().mul(5).round(2)
     movies_df["rating"] = movies_df["movieId"].map(average_rating)
     return movies_df, average_rating
+
+
+def clean_optional_int(value) -> int | None:
+    numeric = pd.to_numeric(value, errors="coerce")
+    if pd.isna(numeric):
+        return None
+    return int(numeric)
 
 
 def serialize_movie(row: pd.Series) -> dict:
@@ -74,7 +82,7 @@ def serialize_movie(row: pd.Series) -> dict:
         "movieId": int(row["movieId"]),
         "title": str(row["title"]),
         "genres": str(row.get("genres", "")),
-        "year": None if pd.isna(year) else int(year),
+        "year": clean_optional_int(year),
         "rating": None if pd.isna(rating) else float(rating),
     }
 
@@ -90,6 +98,16 @@ def find_movie(title: str) -> pd.Series | None:
 @app.get("/", include_in_schema=False)
 def index():
     return FileResponse(STATIC_DIR / "index.html")
+
+
+@app.get("/rate", include_in_schema=False)
+def rate_page():
+    return FileResponse(STATIC_DIR / "rate.html")
+
+
+@app.get("/suggestions", include_in_schema=False)
+def suggestions_page():
+    return FileResponse(STATIC_DIR / "suggestions.html")
 
 
 @app.get("/api/health")
@@ -174,11 +192,7 @@ def recommendations(payload: RecommendationRequest):
         if isinstance(catalog_row, pd.DataFrame):
             catalog_row = catalog_row.iloc[0]
         genres = "" if catalog_row is None else str(catalog_row.get("genres", ""))
-        year = (
-            None
-            if catalog_row is None or pd.isna(catalog_row.get("year"))
-            else int(catalog_row.get("year"))
-        )
+        year = None if catalog_row is None else clean_optional_int(catalog_row.get("year"))
 
         response.append(
             {
