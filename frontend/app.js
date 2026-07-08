@@ -132,7 +132,6 @@ function initRatePage() {
 
       return `
         <article class="movie-card">
-          <div class="${posterClass(movie.title)}">${escapeHtml(posterInitial(movie.title))}</div>
           <div>
             <div class="movie-meta">${escapeHtml(movieSubtitle(movie))}</div>
             <h3 class="movie-title">${escapeHtml(movie.title)}</h3>

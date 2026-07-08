@@ -441,7 +441,7 @@ h2 {
 .movie-card {
   display: grid;
   grid-template-rows: auto 1fr auto;
-  min-height: 236px;
+  min-height: 136px;
   padding: 12px;
 }
 
@@ -490,6 +490,7 @@ h2 {
   grid-template-columns: repeat(5, 1fr);
   gap: 5px;
   margin-top: 12px;
+  align-items: end;
 }
 
 .star-button {
