@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from src.nlp_processor import load_dataframes, main as recommend_for_title
+from src.nlp_processor import load_dataframes, main as recommend_movie
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -19,6 +19,7 @@ STATIC_DIR = PROJECT_ROOT / "frontend"
 class MovieRating(BaseModel):
     title: str
     rating: Annotated[int, Field(ge=1, le=5)]
+    movieId: int | None = None
 
 
 class RecommendationRequest(BaseModel):
@@ -34,6 +35,7 @@ class MovieResponse(BaseModel):
 
 
 class RecommendationResponse(BaseModel):
+    movieId: int
     title: str
     rating: float | None = None
     genres: str
@@ -87,11 +89,17 @@ def serialize_movie(row: pd.Series) -> dict:
     }
 
 
-def find_movie(title: str) -> pd.Series | None:
+def find_movie(title: str, movie_id: int | None = None) -> pd.Series | None:
     movies_df, _ = get_catalog()
+    if movie_id is not None:
+        exact_id = movies_df[movies_df["movieId"] == movie_id]
+        if not exact_id.empty:
+            return exact_id.iloc[0]
+
     exact = movies_df[movies_df["title_key"] == title.casefold()]
     if exact.empty:
         return None
+    exact = exact.sort_values(["rating", "year"], ascending=[False, False])
     return exact.iloc[0]
 
 
@@ -137,7 +145,10 @@ def list_movies(
 @app.post("/api/recommendations", response_model=list[RecommendationResponse])
 def recommendations(payload: RecommendationRequest):
     movies_df, _ = get_catalog()
+    catalog_by_movie_id = movies_df.set_index("movieId")
     catalog_by_title = movies_df.set_index("title")
+    rated_movie_ids = {item.movieId for item in payload.ratings if item.movieId is not None}
+    has_rated_movie_ids = bool(rated_movie_ids)
     rated_titles = {item.title for item in payload.ratings}
 
     seeds = sorted(payload.ratings, key=lambda item: item.rating, reverse=True)
@@ -147,22 +158,24 @@ def recommendations(payload: RecommendationRequest):
     unknown_titles: list[str] = []
 
     for seed in positive_seeds[:5]:
-        movie = find_movie(seed.title)
+        movie = find_movie(seed.title, seed.movieId)
         if movie is None:
             unknown_titles.append(seed.title)
             continue
 
+        seed_movie_id = int(movie["movieId"])
         seed_title = str(movie["title"])
         seed_weight = seed.rating / 5
         try:
-            frame = recommend_for_title(seed_title)
+            frame = recommend_movie(seed_title, seed_movie_id)
         except KeyError:
             unknown_titles.append(seed.title)
             continue
 
         for rank, row in frame.reset_index(drop=True).iterrows():
+            movie_id = int(row["movieId"])
             title = str(row["title"])
-            if title in rated_titles:
+            if movie_id in rated_movie_ids or (not has_rated_movie_ids and title in rated_titles):
                 continue
 
             recommender_rating = row.get("rating")
@@ -173,8 +186,14 @@ def recommendations(payload: RecommendationRequest):
             score = round((seed_weight * 0.65 + normalized_rating * 0.25 + rank_boost * 0.10) * 100, 2)
 
             current = combined.setdefault(
-                title,
-                {"title": title, "score": 0.0, "based_on": set(), "rating": None},
+                movie_id,
+                {
+                    "movieId": movie_id,
+                    "title": title,
+                    "score": 0.0,
+                    "based_on": set(),
+                    "rating": None,
+                },
             )
             current["score"] += score
             current["based_on"].add(seed_title)
@@ -187,8 +206,12 @@ def recommendations(payload: RecommendationRequest):
         raise HTTPException(status_code=404, detail=detail)
 
     response = []
-    for title, item in combined.items():
-        catalog_row = catalog_by_title.loc[title] if title in catalog_by_title.index else None
+    for movie_id, item in combined.items():
+        title = item["title"]
+        if movie_id in catalog_by_movie_id.index:
+            catalog_row = catalog_by_movie_id.loc[movie_id]
+        else:
+            catalog_row = catalog_by_title.loc[title] if title in catalog_by_title.index else None
         if isinstance(catalog_row, pd.DataFrame):
             catalog_row = catalog_row.iloc[0]
         genres = "" if catalog_row is None else str(catalog_row.get("genres", ""))
@@ -196,6 +219,7 @@ def recommendations(payload: RecommendationRequest):
 
         response.append(
             {
+                "movieId": item["movieId"],
                 "title": title,
                 "rating": item["rating"],
                 "genres": genres,

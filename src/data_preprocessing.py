@@ -60,6 +60,9 @@ def data_cleaning():
     ratings_df = ratings_df.drop_duplicates()
     print("\nAfter removing duplicate ratings:", ratings_df.shape)
 
+    movies_df = movies_df.drop_duplicates()
+    print("After removing duplicate movies:", movies_df.shape)
+
     if ratings_df["rating"].max() > 1:
         ratings_df["rating"] /= 5
 

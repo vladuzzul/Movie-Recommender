@@ -16,21 +16,32 @@ def load_dataframes():
     return movies_df, ratings_df
 
 def build_recommender(movies_df):
-    cv=TfidfVectorizer()
-    tfidf_matrix=cv.fit_transform(movies_df['genres'])
+    cv = TfidfVectorizer()
+    tfidf_matrix = cv.fit_transform(movies_df["genres"])
     cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
 
-    indices=pd.Series(movies_df.index,index=movies_df['title'])
-    titles=movies_df['title']
+    indices = pd.Series(movies_df.index, index=movies_df["title"])
+    titles = movies_df["title"]
 
     return titles, indices, cosine_sim
 
-def recommendations(movies_df, ratings_df, titles, indices, cosine_sim, title):
-    movies_df, ratings_df = load_dataframes()
+def resolve_movie_index(movies_df, indices, title=None, movie_id=None):
+    if movie_id is not None:
+        matches = movies_df.index[movies_df["movieId"] == movie_id].tolist()
+        if not matches:
+            raise KeyError(movie_id)
+        return int(matches[0])
+
     idx = indices[title]
+    if hasattr(idx, "iloc"):
+        idx = idx.iloc[0]
+    return int(idx)
+
+def recommendations(movies_df, ratings_df, titles, indices, cosine_sim, title=None, movie_id=None):
+    idx = resolve_movie_index(movies_df, indices, title=title, movie_id=movie_id)
     sim_scores = list(enumerate(cosine_sim[idx]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-    sim_scores = sim_scores[1:11]
+    sim_scores = [score for score in sim_scores if score[0] != idx][:10]
     movie_indices = [i[0] for i in sim_scores]
     recommended = movies_df.iloc[movie_indices].copy()
     avg_rating = ratings_df.groupby("movieId")["rating"].mean()
@@ -45,9 +56,9 @@ def recommendations(movies_df, ratings_df, titles, indices, cosine_sim, title):
     recommended = recommended[0:5]
 
 
-    return recommended[["title", "rating"]]
+    return recommended[["movieId", "title", "rating"]]
 
-def main(movie_title):
+def main(movie_title=None, movie_id=None):
     movies_df, ratings_df = load_dataframes()
     titles, indices, cosine_sim = build_recommender(movies_df)
     return recommendations(
@@ -56,7 +67,8 @@ def main(movie_title):
             titles,
             indices,
             cosine_sim, 
-            movie_title
+            movie_title,
+            movie_id
         )
 
 if __name__ == "__main__":

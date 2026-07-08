@@ -14,14 +14,21 @@ const escapeHtml = (value) =>
 const getRatings = () => {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    return new Map(saved.map((item) => [item.title, item.rating]));
+    return new Map(saved.map((item) => {
+      const key = item.movieId == null ? item.title : String(item.movieId);
+      return [key, {
+        movieId: item.movieId ?? null,
+        title: item.title,
+        rating: item.rating,
+      }];
+    }));
   } catch {
     return new Map();
   }
 };
 
 const saveRatings = (ratings) => {
-  const payload = [...ratings.entries()].map(([title, rating]) => ({ title, rating }));
+  const payload = [...ratings.values()];
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 };
 
@@ -64,13 +71,13 @@ function renderRatedList(container, ratings, mode = "full") {
   }
 
   container.className = "rated-list";
-  container.innerHTML = items.map(([title, rating]) => `
+  container.innerHTML = items.map(([key, item]) => `
     <div class="rated-item">
       <div>
-        <strong>${escapeHtml(title)}</strong>
-        <div class="movie-meta">${escapeHtml(starText(rating))}</div>
+        <strong>${escapeHtml(item.title)}</strong>
+        <div class="movie-meta">${escapeHtml(starText(item.rating))}</div>
       </div>
-      ${mode === "editable" ? `<button class="remove-button" type="button" aria-label="Remove ${escapeHtml(title)}" data-remove="${escapeHtml(title)}">x</button>` : ""}
+      ${mode === "editable" ? `<button class="remove-button" type="button" aria-label="Remove ${escapeHtml(item.title)}" data-remove="${escapeHtml(key)}">x</button>` : ""}
     </div>
   `).join("");
 }
@@ -80,7 +87,7 @@ function initHome() {
   if (!count) return;
 
   const ratings = getRatings();
-  const totalPower = [...ratings.values()].reduce((sum, rating) => sum + rating, 0);
+  const totalPower = [...ratings.values()].reduce((sum, item) => sum + item.rating, 0);
   count.textContent = ratings.size
     ? `${ratings.size} ratings - ${totalPower} stars`
     : "0 ratings loaded";
@@ -102,7 +109,7 @@ function initRatePage() {
   };
 
   const updateHud = () => {
-    const totalPower = [...state.ratings.values()].reduce((sum, rating) => sum + rating, 0);
+    const totalPower = [...state.ratings.values()].reduce((sum, item) => sum + item.rating, 0);
     ratedCount.textContent = state.ratings.size;
     starPower.textContent = totalPower;
     recommendButton.classList.toggle("disabled", state.ratings.size === 0);
@@ -119,12 +126,16 @@ function initRatePage() {
 
     movieGrid.className = "movie-grid";
     movieGrid.innerHTML = state.movies.map((movie) => {
-      const currentRating = state.ratings.get(movie.title) || 0;
+      const movieKey = String(movie.movieId);
+      const currentRating = (
+        state.ratings.get(movieKey) || state.ratings.get(movie.title)
+      )?.rating || 0;
       const stars = [1, 2, 3, 4, 5].map((value) => `
         <button
           class="star-button ${value <= currentRating ? "active" : ""}"
           type="button"
           aria-label="${value} stars for ${escapeHtml(movie.title)}"
+          data-movie-id="${escapeHtml(movie.movieId)}"
           data-title="${escapeHtml(movie.title)}"
           data-rating="${value}"
         >★</button>
@@ -154,7 +165,14 @@ function initRatePage() {
     const button = event.target.closest("[data-rating]");
     if (!button) return;
 
-    state.ratings.set(button.dataset.title, Number(button.dataset.rating));
+    const movieId = Number(button.dataset.movieId);
+    const key = String(movieId);
+    state.ratings.delete(button.dataset.title);
+    state.ratings.set(key, {
+      movieId,
+      title: button.dataset.title,
+      rating: Number(button.dataset.rating),
+    });
     saveRatings(state.ratings);
     renderMovies();
     updateHud();
@@ -225,7 +243,7 @@ function initSuggestionsPage() {
   }
 
   const payload = {
-    ratings: [...ratings.entries()].map(([title, rating]) => ({ title, rating })),
+    ratings: [...ratings.values()],
   };
 
   statusText.textContent = "Calculating";
