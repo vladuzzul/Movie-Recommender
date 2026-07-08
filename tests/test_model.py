@@ -17,7 +17,7 @@ class TestModel(unittest.TestCase):
             titles,
             indices,
             cosine_sim, 
-            "Fast & Furious Presents: Hobbs & Shaw",
+            "Spectre",
             None
         )
         self.assertEqual(str(type(recommendation)), "<class 'pandas.core.frame.DataFrame'>")
