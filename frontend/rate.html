@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Rate Movies | Cinema Quest</title>
+    <title>Rate Movies | Movie Recommender</title>
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body data-page="rate">
     <main class="screen">
       <nav class="topbar" aria-label="Main navigation">
-        <a class="brand" href="/">Cinema Quest</a>
+        <a class="brand" href="/">Movie Recommender</a>
         <div class="nav-actions">
           <a class="active" href="/rate">Rate movies</a>
           <a href="/suggestions">Suggestions</a>
@@ -18,8 +18,7 @@
 
       <section class="game-hud">
         <div>
-          <p class="eyebrow">Level 1: taste builder</p>
-          <h1>Collect star power.</h1>
+          <h1>Rate movies</h1>
         </div>
         <div class="hud-stats" aria-label="Rating progress">
           <div>
@@ -28,7 +27,7 @@
           </div>
           <div>
             <strong id="starPower">0</strong>
-            <span>power</span>
+            <span>stars</span>
           </div>
         </div>
       </section>
@@ -36,11 +35,11 @@
       <section class="playfield">
         <aside class="quest-panel">
           <img class="ticket-art" src="/static/assets/ticket.svg" alt="" />
-          <h2>Your loadout</h2>
+          <h2>Your movies</h2>
           <div id="ratedList" class="rated-list empty-state">No movies rated yet.</div>
           <div class="panel-actions">
-            <button id="clearButton" class="ghost-button" type="button">Reset run</button>
-            <a id="recommendButton" class="quest-button disabled" href="/suggestions" aria-disabled="true">Reveal rewards</a>
+            <button id="clearButton" class="ghost-button" type="button">Reset</button>
+            <a id="recommendButton" class="quest-button disabled" href="/suggestions" aria-disabled="true">Reveal recommendations</a>
           </div>
         </aside>
 

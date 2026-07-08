@@ -82,7 +82,7 @@ function initHome() {
   const ratings = getRatings();
   const totalPower = [...ratings.values()].reduce((sum, rating) => sum + rating, 0);
   count.textContent = ratings.size
-    ? `${ratings.size} ratings - ${totalPower} star power`
+    ? `${ratings.size} ratings - ${totalPower} stars`
     : "0 ratings loaded";
 }
 
