@@ -1,5 +1,4 @@
 import unittest
-import requests
 from fastapi.testclient import TestClient
 import sys
 from pathlib import Path
