@@ -12,7 +12,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install test dependencies
-        run: pip install pytest pandas pathlib scikit-learn httpx2
+        run: pip install pytest pandas pathlib scikit-learn httpx2 fastapi
 
       - name: Run unit tests
         run: pytest tests
