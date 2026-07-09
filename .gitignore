@@ -220,3 +220,4 @@ __marimo__/
 mlflow.db
 
 .DS_Store
+tests/playgroud-tests.py
